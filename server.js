@@ -10,10 +10,12 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const errorHandler = require('./middleware/error')
 const mongoose = require('mongoose');
-
+const fileupload = require('express-fileupload')
 
 
 const bootcamps = require('./routes/Bootcamps')
+const courses = require('./routes/Courses')
+
 
 const Url = 'mongodb+srv://dev:dev1234@cluster0-gakn1.mongodb.net/devDB'
 mongoose.connect(Url, {
@@ -45,7 +47,9 @@ app.use((req, res, next) => {
 })
 
 app.use(morgan('dev'));
+app.use(fileupload())
 app.use('/api/v1/bootcamps', bootcamps)
+app.use('/api/v1/courses', courses)
 app.use(errorHandler)
 const PORT = process.env.PORT || 5000;
 
