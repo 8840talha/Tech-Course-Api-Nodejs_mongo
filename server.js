@@ -1,4 +1,4 @@
-
+var path = require('path')
 var express = require('express');
 var dotenv = require('dotenv');
 dotenv.config({ path: './config/config.env' });
@@ -15,7 +15,7 @@ const fileupload = require('express-fileupload')
 
 const bootcamps = require('./routes/Bootcamps')
 const courses = require('./routes/Courses')
-
+const users = require('./routes/Users')
 
 const Url = 'mongodb+srv://dev:dev1234@cluster0-gakn1.mongodb.net/devDB'
 mongoose.connect(Url, {
@@ -29,7 +29,7 @@ mongoose.connect(Url, {
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('uploads'))
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -50,6 +50,7 @@ app.use(morgan('dev'));
 app.use(fileupload())
 app.use('/api/v1/bootcamps', bootcamps)
 app.use('/api/v1/courses', courses)
+app.use('/api/v1/users', users)
 app.use(errorHandler)
 const PORT = process.env.PORT || 5000;
 

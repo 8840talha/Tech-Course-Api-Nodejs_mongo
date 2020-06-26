@@ -1,76 +1,10 @@
+const path = require('path')
 const Bootcamp = require('../models/Bootcamp');
 const geoCoder = require('../utils/geocode')
 const mongoose = require('mongoose');
-
+const advancedResults = require('../middleware/advancedResults')
 exports.bootcamps_get_all = (req, res) => {
-    let query;
-    let reqQuery = { ...req.query }
-
-
-
-    // Fields to exclude
-    const removeFields = ['select', 'sort', 'page', 'limit'];
-
-    // Loop over removeFields and delete them from reqQuery
-    removeFields.forEach(param => delete reqQuery[param]);
-    let queryStr = JSON.stringify(reqQuery);
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-
-    let find = JSON.parse(queryStr)
-
-    query = Bootcamp.find(find).populate('courses')
-
-    // Select Fields
-    if (req.query.select) {
-        // const fields = req.query.select.split(',').join(' ');
-        query = query.select(req.query.select);
-    }
-
-    // Sort
-    if (req.query.sort) {
-        // const sortBy = req.query.sort.split(',').join(' ');
-        query = query.sort(req.query.sort);
-    } else {
-        query = query.sort('-createdAt');
-    }
-
-    // Pagination
-    var page = parseInt(req.query.page, 10) || 1;
-    var limit = parseInt(req.query.limit, 10) || 25;
-    var startIndex = (page - 1) * limit;
-    var endIndex = page * limit;
-    var Pagination = {}
-    Bootcamp.countDocuments().then(total => {
-        if (endIndex < total) {
-            Pagination.next = {
-                page: page + 1,
-                limit
-            }
-        }
-        if (startIndex > 0) {
-            Pagination.prev = {
-                page: page - 1,
-                limit
-            }
-        }
-    })
-
-
-
-
-    query = query.skip(startIndex).limit(limit)
-
-
-
-    query.then(foundBootcamps => {
-        res.status(200).json({
-            count: foundBootcamps.length,
-            success: true,
-            Pagination,
-            bootcamps: foundBootcamps
-        })
-    })
-        .catch(err => err.status(500).json({ error: err }))
+    advancedResults();
 }
 
 exports.bootcamps_create = (req, res) => {
@@ -92,27 +26,18 @@ exports.bootcamps_create = (req, res) => {
 
     const newBC = new Bootcamp(req.body)
     newBC.save().then(bC => {
-        res.status(201).json({
-            success: true,
-            data: bC
-        })
+        res.status(201).json({ success: true, data: bC })
     }).catch(err => {
         if (err.code == 11000) res.status(400).json({ error: err.name, message: `Bootcamp With name ${req.body.name} already exists` })
         else res.status(500).json({ error: err.message })
-
     })
-
 }
 exports.delete_All_Bootcamps = (req, res) => {
     Bootcamp.deleteMany()
         .exec()
         .then(deleteBootcamps => {
             if (!deleteBootcamps) {
-                return res.status(404).json({
-                    success: true,
-                    message: 'Nothing to delete ,no enteries to delete',
-                    deleteBootcamps: {}
-                })
+                return res.status(404).json({ success: true, message: 'Nothing to delete ,no enteries to delete', deleteBootcamps: {} })
             }
             res.status(200).json({
                 success: true,
@@ -215,4 +140,25 @@ exports.get_Bootcamp_By_radius = async (req, res) => {
 
 
 
+}
+
+
+exports.Upload_Photo_BootCamp = (req, res) => {
+    Bootcamp.findById(req.params.id)
+        .exec()
+        .then(bootcamp => {
+            if (!bootcamp) { return res.status(404).json({ success: false, message: 'Not Found Entry with this id  to upload a photo' }) }
+            if (!req.files) { return res.status(400).json({ success: false, message: 'Please provide a file ' }) }
+            const file = req.files.file;
+            if (!file.mimetype.startsWith('image')) { return res.status(400).json({ success: false, message: 'Please provide a image file' }) }
+            file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
+            file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, function (err) {
+                if (err) { return res.status(500).json({ success: false, message: 'problem uploading file file' }) }
+                Bootcamp.findByIdAndUpdate(req.params.id, { photo: file.name })
+                    .exec()
+                    .then(found => {
+                        res.status(200).json({ success: true, message: 'SuccessFully Updated', data: file.name })
+                    })
+            })
+        }).catch(err => res.status(500).json({ error: err, success: false, message: 'Wrong Object Id or network issue' }))
 }
