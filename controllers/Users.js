@@ -11,13 +11,21 @@ exports.register = (req, res) => {
     console.log(req.body)
     const NewUser = new User(req.body)
     const token = NewUser.getJwtToken();
+    const options = {
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000
+
+        ),
+        httpOnly: true
+    }
     NewUser.save().then(newUser => {
-        res.status(200).json({
-            success: true,
-            message: 'User SuccessFully Created',
-            name: newUser.name,
-            token: token
-        })
+        res.status(200)
+            .cookie('token', token, options)
+            .json({
+                success: true,
+                message: 'User SuccessFully Created',
+                name: newUser.name,
+                token: token
+            })
     }).catch(err => res.status(500).json({ success: false, error: err }))
 
 }
@@ -44,11 +52,19 @@ exports.login = (req, res) => {
                 }
                 if (result) {
                     const token = user[0].getJwtToken();
-                    res.status(200).json({
-                        success: 'true',
-                        message: 'Auth Successful',
-                        token: token
-                    })
+                    const options = {
+                        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000
+
+                        ),
+                        httpOnly: true
+                    }
+                    res.status(200)
+                        .cookie('token', token, options)
+                        .json({
+                            success: 'true',
+                            message: 'Auth Successful',
+                            token: token
+                        })
                     return 1;
                 }
                 res.status(401).json({ success: 'false', message: 'Wrong Email or password' });
@@ -61,4 +77,8 @@ exports.login = (req, res) => {
             return 1;
         })
 
+}
+
+exports.GetME = (req, res) => {
+    res.status(200).json(req.user);
 }

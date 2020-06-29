@@ -7,22 +7,22 @@ exports.bootcamps_get_all = (req, res) => {
     advancedResults();
 }
 
-exports.bootcamps_create = (req, res) => {
+exports.bootcamps_create = async (req, res, next) => {
     console.log(req.body)
-    // Async await method
-    // try {
-    //     const bootcamp = await Bootcamp.create(req.body);
 
-    //     res.status(201).json({
-    //         success: true,
-    //         data: bootcamp
-    //     })
-    // } catch (error) {
-    //     res.status(400).json({
-    //         success: true,
-    //         error: error
-    //     })
-    // }
+    req.body.user = req.user._id;
+
+    console.log(req.body.user)
+    console.log(req.user.id)
+    console.log(req.user._id)
+    const bc = await Bootcamp.findOne({ user: req.user._id })
+
+    if (bc && req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'You have already Created a bootcamp' })
+        next()
+    }
+
+
 
     const newBC = new Bootcamp(req.body)
     newBC.save().then(bC => {
@@ -87,7 +87,7 @@ exports.delete_Single_BootCamp = (req, res) => {
 
 
 exports.Update_BootCamp = (req, res) => {
-    Bootcamp.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+    Bootcamp.findById(req.params.id)
         .exec()
         .then(updatedSingle => {
             if (!updatedSingle) {
@@ -96,11 +96,33 @@ exports.Update_BootCamp = (req, res) => {
                     message: 'Not Found Entry with this id  to update'
                 })
             }
-            res.status(200).json({
-                success: true,
-                message: 'SuccessFully Updated',
-                data: updatedSingle
-            })
+            console.log(updatedSingle)
+            if (req.user._id.toString() ===  updatedSingle.user.toString()) {
+                console.log('true')
+            } else {
+                console.log('false')
+            }
+            // console.log(typeOfreq.user._id)
+            // console.log(typeOfupdatedSingle.user.toString())
+            // if (updatedSingle.user.toString() == req.user._id) {
+            //     console.log('true')
+            // } else {
+            //     console.log('false')
+            // }
+            if (updatedSingle.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(401).json({ success: false, message: 'You dont have access to delete this bootcamp' })
+                next()
+            }
+            Bootcamp.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+                .exec()
+                .then(updatedSingle => {
+                    res.status(200).json({
+                        success: true,
+                        message: 'SuccessFully Updated',
+                        data: updatedSingle
+                    })
+                })
+
         }).catch(err => res.status(500).json({ error: err, success: false, message: 'Wrong Object Id or network issue' }))
 
 }

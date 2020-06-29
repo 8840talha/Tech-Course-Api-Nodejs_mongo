@@ -1,5 +1,6 @@
 var path = require('path')
 var express = require('express');
+var cookieParser = require('cookie-parser')
 var dotenv = require('dotenv');
 dotenv.config({ path: './config/config.env' });
 
@@ -46,6 +47,9 @@ app.use((req, res, next) => {
 
 })
 
+ 
+
+app.use(cookieParser())
 app.use(morgan('dev'));
 app.use(fileupload())
 app.use('/api/v1/bootcamps', bootcamps)
