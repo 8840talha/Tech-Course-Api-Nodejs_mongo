@@ -38,8 +38,14 @@ exports.Get_Single_Course = (req, res) => {
 exports.Add_New_Course = (req, res) => {
     console.log(req.body)
     req.body.bootcamp = req.params.bootcampId
+    req.body.user = req.user.id;
     Bootcamp.findById(req.params.bootcampId).exec().then(bootcamp => {
         if (!bootcamp) return res.status(404).json({ success: false, message: 'No Bootcamp found to add courses' })
+
+        if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ success: false, message: `You dont have access to add a course to ${bootcamp.name}` })
+            next()
+        }
         const newCourse = new Course(req.body)
         newCourse.save().then(course => {
             res.status(201).json({ success: true, createdCourse: course })
@@ -49,9 +55,19 @@ exports.Add_New_Course = (req, res) => {
     })
 }
 exports.update_Course = (req, res) => {
-    Course.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).exec().then(course => {
+    Course.findByIdAndUpdate(req.params.id).exec().then(course => {
         if (!course) return res.status(404).json({ success: false, message: `No course found with id ${req.params.id}` })
-        res.status(201).json({ success: true, updatedCourse: course })
+
+        if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ success: false, message: `You dont have access to update this course  ${course.title}` })
+            next()
+        }
+        Course.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+            .exec().then(course => {
+                res.status(201).json({ success: true, updatedCourse: course })
+            })
+
+
     }).catch(err => {
         res.status(500).json({ success: false, error: err.message })
     })
@@ -62,6 +78,11 @@ exports.delete_Single_Course = (req, res) => {
             if (!deletedSingle) {
                 return res.status(404).json({ success: false, message: 'Not Found Entry with this ' + req.params.id + '  to delete' })
             }
+            if (deletedSingle.user.toString() !== req.user.id && req.user.role !== 'admin') {
+                return res.status(401).json({ success: false, message: `You dont have access to delete this course  ${deletedSingle.title}` })
+                next()
+            }
+
             deletedSingle.remove();
             res.status(200).json({ success: true, deletedData: deletedSingle })
         }).catch(err => res.status(500).json({ error: err, success: false, message: 'Wrong Object Id or network issue' }))

@@ -75,7 +75,10 @@ exports.delete_Single_BootCamp = (req, res) => {
                     message: 'Not Found Entry with this id  to delete'
                 })
             }
-
+            if (deletedSingle.user.toString() !== req.user.id && req.user.role !== 'admin') {
+                return res.status(401).json({ success: false, message: 'You dont have access to delete this bootcamp' })
+                next()
+            }
             deletedSingle.remove();
             res.status(200).json({
                 success: true,
@@ -97,20 +100,9 @@ exports.Update_BootCamp = (req, res) => {
                 })
             }
             console.log(updatedSingle)
-            if (req.user._id.toString() ===  updatedSingle.user.toString()) {
-                console.log('true')
-            } else {
-                console.log('false')
-            }
-            // console.log(typeOfreq.user._id)
-            // console.log(typeOfupdatedSingle.user.toString())
-            // if (updatedSingle.user.toString() == req.user._id) {
-            //     console.log('true')
-            // } else {
-            //     console.log('false')
-            // }
+
             if (updatedSingle.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-                return res.status(401).json({ success: false, message: 'You dont have access to delete this bootcamp' })
+                return res.status(401).json({ success: false, message: 'You dont have access to update this bootcamp' })
                 next()
             }
             Bootcamp.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
@@ -170,6 +162,10 @@ exports.Upload_Photo_BootCamp = (req, res) => {
         .exec()
         .then(bootcamp => {
             if (!bootcamp) { return res.status(404).json({ success: false, message: 'Not Found Entry with this id  to upload a photo' }) }
+            if (bootcamp.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(401).json({ success: false, message: 'You dont have access to upload photo to this bootcamp' })
+                next()
+            }
             if (!req.files) { return res.status(400).json({ success: false, message: 'Please provide a file ' }) }
             const file = req.files.file;
             if (!file.mimetype.startsWith('image')) { return res.status(400).json({ success: false, message: 'Please provide a image file' }) }
