@@ -182,7 +182,7 @@ exports.forgetPassword = (req, res) => {
             const resetToken = user.getResetPassToken();
             user.save({ validateBeforeSave: false }).then(u => {
                 res.status(200).json({ data: u })
-            })
+            }).catch(err => res.status(401).json({ success: false, error: err, message: 'Some error occured' }))
 
             console.log(resetToken)
             //  Create url for users to reset;
@@ -224,23 +224,29 @@ exports.resetPassword = (req, res) => {
         if (!user) {
             return res.status(401).json({ message: 'Invalid token', success: false })
         }
-        user.password = req.body.password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-        // const token = user.getJwtToken();
-        user.save().then(u => {
+        bcrypt.hash(req.body.password, 10, (err, hash) => {
+            if (err) {
+                res.status(500).json({ error: err, success: false, message: 'some err occured' })
+            } else {
+                user.password = hash;
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpire = undefined;
+                // const token = user.getJwtToken();
+                user.save().then(u => {
 
-            res.status(200).json({ success: true, data: u })
-        }).catch(err => {
-            res.status(500).json({ error: err, success: false })
+                    res.status(200).json({ success: true, data: u })
+                }).catch(err => {
+                    res.status(500).json({ error: err, success: false })
+                })
+
+            }
+
+
         })
-
 
     }).catch(err => {
         res.status(500).json({ error: err, success: false })
     })
-
-
 
 }
 
