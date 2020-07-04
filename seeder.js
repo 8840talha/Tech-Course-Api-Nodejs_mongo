@@ -2,7 +2,7 @@ var dotenv = require('dotenv');
 dotenv.config({ path: './config/config.env' });
 const fs = require('fs')
 const mongoose = require('mongoose')
-
+const bcrypt = require('bcrypt')
 // Load Models
 const Bootcamp = require('./models/Bootcamp')
 const Course = require('./models/Course')
@@ -33,7 +33,7 @@ const users = JSON.parse(
     fs.readFileSync(`${__dirname}/_data/users.json`, 'utf-8')
 );
 
-
+           
 const importData = async () => {
     try {
         await Bootcamp.create(bootcamps);

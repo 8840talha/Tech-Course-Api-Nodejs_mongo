@@ -1,8 +1,5 @@
 const path = require('path')
 const User = require('../models/User');
-const geoCoder = require('../utils/geocode')
-const mongoose = require('mongoose');
-const advancedResults = require('../middleware/advancedResults')
 const sendEmail = require('../utils/sendemail')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
@@ -75,13 +72,13 @@ exports.login = (req, res) => {
                         })
                     return 1;
                 }
-                res.status(401).json({ success: 'false', message: 'Invalid' });
+                res.status(401).json({ success: 'false', message: 'Invalid credentils' });
                 return 1;
             })
 
         })
         .catch(err => {
-            res.status(500).json({ success: 'false', message: 'Some error occurred' })
+            res.status(500).json({ error: err, success: 'false', message: 'Some error occurred' })
             return 1;
         })
 
@@ -156,7 +153,7 @@ exports.reset = (req, res, next) => {
                 } else {
                     return res.status(401).json({
                         success: 'false',
-                        message: 'Auth faileds'
+                        message: 'Auth failed'
                     });
                 }
             })
