@@ -1,6 +1,5 @@
 # Tech-Course-Api-Nodejs_mongo
 # Made With Node Express And Mongo
-# Project to enhance my Knowledge to create Api's and write good Backend Code
 # This Is a Project Where we are going to show Tech Courses So that Learners can find a course and Study 
 # You can courses with there categories
 # Only Authorized users mapped to there specefic courses they sell can do Create ,delete ,update it
