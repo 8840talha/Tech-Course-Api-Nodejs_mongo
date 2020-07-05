@@ -11,7 +11,7 @@ exports.Get_All_Courses = (req, res) => {
             .exec()
             .then(foundCourses => {
                 if (foundCourses.length == 0) {
-                    res.status(404).json({ count: foundCourses.length, success: true, message: 'Not Found Courses', courses: foundCourses })
+                    return res.status(404).json({ count: foundCourses.length, success: true, message: 'Not Found Courses', courses: foundCourses })
                 }
                 res.status(200).json({ count: foundCourses.length, success: true, message: 'Found All Courses', courses: foundCourses })
             })
@@ -27,7 +27,7 @@ exports.Get_Single_Course = (req, res) => {
         .exec()
         .then(foundCourse => {
             if (!foundCourse) {
-                res.status(404).json({ success: true, message: `Not Found Course with id ${req.params.id} `, course: foundCourse })
+                return res.status(404).json({ success: true, message: `Not Found Course with id ${req.params.id} `, course: foundCourse })
             }
             res.status(200).json({ success: true, message: `Found  Course with id ${req.params.id}  `, course: foundCourse })
         })

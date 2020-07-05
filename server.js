@@ -18,6 +18,7 @@ const bootcamps = require('./routes/Bootcamps')
 const courses = require('./routes/Courses')
 const users = require('./routes/Users')
 const admin = require('./routes/Admin')
+const reviews = require('./routes/Reviews')
 
 const Url = 'mongodb+srv://dev:dev1234@cluster0-gakn1.mongodb.net/devDB'
 mongoose.connect(Url, {
@@ -57,6 +58,7 @@ app.use('/api/v1/bootcamps', bootcamps)
 app.use('/api/v1/courses', courses)
 app.use('/api/v1/users', users)
 app.use('/api/v1', admin)
+app.use('/api/v1/reviews', reviews)
 app.use(errorHandler)
 const PORT = process.env.PORT || 5000;
 
