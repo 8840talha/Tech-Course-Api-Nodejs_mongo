@@ -3,15 +3,11 @@ var express = require('express');
 var cookieParser = require('cookie-parser')
 var dotenv = require('dotenv');
 dotenv.config({ path: './config/config.env' });
-
 var app = express();
 
 
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
-const errorHandler = require('./middleware/error')
-const mongoose = require('mongoose');
-const fileupload = require('express-fileupload')
+
+
 
 
 const bootcamps = require('./routes/Bootcamps')
@@ -19,6 +15,30 @@ const courses = require('./routes/Courses')
 const users = require('./routes/Users')
 const admin = require('./routes/Admin')
 const reviews = require('./routes/Reviews')
+const cors = require('cors');
+const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+var xss = require('xss-clean')
+var hpp = require('hpp');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const errorHandler = require('./middleware/error')
+const mongoose = require('mongoose');
+const fileupload = require('express-fileupload')
+app.use(mongoSanitize());
+app.use(helmet());
+
+
+
+
+
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 100
+});
+
+
 
 const Url = 'mongodb+srv://dev:dev1234@cluster0-gakn1.mongodb.net/devDB'
 mongoose.connect(Url, {
@@ -33,7 +53,9 @@ mongoose.connect(Url, {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')))
-
+app.use(xss());
+app.use(limiter);
+app.use(hpp())
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Acces-Control-Allow-Headers',
@@ -51,6 +73,7 @@ app.use((req, res, next) => {
 
 
 
+app.use(cors())
 app.use(cookieParser())
 app.use(morgan('dev'));
 app.use(fileupload())
