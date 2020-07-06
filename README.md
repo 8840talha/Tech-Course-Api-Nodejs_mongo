@@ -7,4 +7,7 @@
 # Role based access to certain route are given as Admin route is not accessible for all
 # Admin is master and can do all operations without fail
 # we have implemented sorting,filetring,pagination in the server itself so frontend guy can simply make url out of it
-# Its still in development as i am working on it after completing will deploy it
+# Added all review functionality ,now user can review courses that he has bought..
+# clone or downloaad zip
+# run npm install and npm run dev for running in production mode 
+   
